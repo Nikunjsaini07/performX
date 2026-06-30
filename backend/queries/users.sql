@@ -71,37 +71,7 @@ SELECT id, username, display_name, bio, avatar_url, created_at
 FROM users
 WHERE id = $1 LIMIT 1;
 
--- name: GetFollowers :many
-SELECT 
-    u.id, u.username, u.display_name, u.email, u.bio, u.avatar_url, uf.created_at AS followed_at
-FROM user_follows uf
-JOIN users u ON uf.follower_id = u.id
-WHERE uf.following_id = $1
-ORDER BY uf.created_at DESC;
 
--- name: GetFollowing :many
-SELECT 
-    u.id, u.username, u.display_name, u.email, u.bio, u.avatar_url, uf.created_at AS followed_at
-FROM user_follows uf
-JOIN users u ON uf.following_id = u.id
-WHERE uf.follower_id = $1
-ORDER BY uf.created_at DESC;
-
--- name: IsFollowing :one
-SELECT EXISTS(
-    SELECT 1 FROM user_follows
-    WHERE follower_id = $1 AND following_id = $2
-)::boolean AS is_following;
-
--- name: GetFollowersCount :one
-SELECT COUNT(*)::bigint AS followers_count
-FROM user_follows
-WHERE following_id = $1;
-
--- name: GetFollowingCount :one
-SELECT COUNT(*)::bigint AS following_count
-FROM user_follows
-WHERE follower_id = $1;
 
 -- name: GetUserReviewCount :one
 SELECT (
