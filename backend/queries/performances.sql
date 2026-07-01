@@ -135,6 +135,6 @@ SELECT
     pl.name AS player_name
 FROM performances p
 JOIN players pl ON p.player_id = pl.id
-WHERE p.match_id = (SELECT match_id FROM performances WHERE id = $1) AND p.id <> $1
+WHERE p.match_id = (SELECT sub_p.match_id FROM performances sub_p WHERE sub_p.id = $1) AND p.id <> $1
 ORDER BY p.provider_rating DESC
 LIMIT $2;
