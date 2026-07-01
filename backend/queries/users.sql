@@ -4,24 +4,26 @@ INSERT INTO users (
     display_name,
     email,
     bio,
-    avatar_url
+    avatar_url,
+    password_hash,
+    email_verified
 ) VALUES (
-    $1, $2, $3, $4, $5
+    $1, $2, $3, $4, $5, $6, $7
 )
-RETURNING id, username, display_name, email, bio, avatar_url, created_at, updated_at;
+RETURNING id, username, display_name, email, bio, avatar_url, email_verified, role, created_at, updated_at;
 
 -- name: GetUserByID :one
-SELECT id, username, display_name, email, bio, avatar_url, created_at, updated_at
+SELECT id, username, display_name, email, bio, avatar_url, password_hash, email_verified, role, created_at, updated_at
 FROM users
 WHERE id = $1 LIMIT 1;
 
 -- name: GetUserByUsername :one
-SELECT id, username, display_name, email, bio, avatar_url, created_at, updated_at
+SELECT id, username, display_name, email, bio, avatar_url, password_hash, email_verified, role, created_at, updated_at
 FROM users
 WHERE username = $1 LIMIT 1;
 
 -- name: GetUserByEmail :one
-SELECT id, username, display_name, email, bio, avatar_url, created_at, updated_at
+SELECT id, username, display_name, email, bio, avatar_url, password_hash, email_verified, role, created_at, updated_at
 FROM users
 WHERE email = $1 LIMIT 1;
 
@@ -137,3 +139,32 @@ FROM lists l
 WHERE l.user_id = $1
 ORDER BY l.created_at DESC
 LIMIT $2 OFFSET $3;
+
+-- name: GetUserActivity :many
+SELECT 'match_review' AS activity_type, id, created_at, title AS description
+FROM match_reviews
+WHERE match_reviews.user_id = $1
+UNION ALL
+SELECT 'performance_review' AS activity_type, id, created_at, title AS description
+FROM performance_reviews
+WHERE performance_reviews.user_id = $1
+UNION ALL
+SELECT 'match_rating' AS activity_type, id, created_at, 'Rated a match' AS description
+FROM match_ratings
+WHERE match_ratings.user_id = $1
+UNION ALL
+SELECT 'performance_rating' AS activity_type, id, created_at, 'Rated a player performance' AS description
+FROM performance_ratings
+WHERE performance_ratings.user_id = $1
+UNION ALL
+SELECT 'list' AS activity_type, id, created_at, title AS description
+FROM lists
+WHERE lists.user_id = $1
+ORDER BY created_at DESC
+LIMIT $2 OFFSET $3;
+
+-- name: UpdateUserRole :one
+UPDATE users
+SET role = $2, updated_at = now()
+WHERE id = $1
+RETURNING id, username, display_name, email, role, created_at, updated_at;
