@@ -48,9 +48,9 @@ SELECT
     u.id, u.username, u.display_name, u.avatar_url
 FROM users u
 WHERE u.id IN (
-    SELECT follower_id FROM user_follows WHERE following_id = $1
+    SELECT uf1.follower_id FROM user_follows uf1 WHERE uf1.following_id = $1
     INTERSECT
-    SELECT follower_id FROM user_follows WHERE following_id = $2
+    SELECT uf2.follower_id FROM user_follows uf2 WHERE uf2.following_id = $2
 )
 ORDER BY u.username;
 
@@ -59,8 +59,8 @@ SELECT
     u.id, u.username, u.display_name, u.avatar_url
 FROM users u
 WHERE u.id IN (
-    SELECT following_id FROM user_follows WHERE follower_id = $1
+    SELECT uf1.following_id FROM user_follows uf1 WHERE uf1.follower_id = $1
     INTERSECT
-    SELECT following_id FROM user_follows WHERE follower_id = $2
+    SELECT uf2.following_id FROM user_follows uf2 WHERE uf2.follower_id = $2
 )
 ORDER BY u.username;
