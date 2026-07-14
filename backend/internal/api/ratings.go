@@ -75,8 +75,17 @@ func (h *RatingsHandler) RateMatch(w http.ResponseWriter, r *http.Request) {
 		log.Printf("warning: failed to refresh match rating aggregate: %v", err)
 	}
 
+	summary, err := h.Queries.GetMatchAverageRating(r.Context(), match.ID)
+	if err != nil {
+		log.Printf("warning: failed to fetch updated match rating aggregate: %v", err)
+	}
+
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(rating)
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"rating":         rating.Rating,
+		"average_rating": summary.AverageRating,
+		"total_votes":    summary.TotalVotes,
+	})
 }
 
 // PATCH /matches/{slug}/rating
@@ -248,8 +257,17 @@ func (h *RatingsHandler) RatePerformance(w http.ResponseWriter, r *http.Request)
 		log.Printf("warning: failed to refresh performance rating aggregate: %v", err)
 	}
 
+	summary, err := h.Queries.GetPerformanceAverageRating(r.Context(), perfID)
+	if err != nil {
+		log.Printf("warning: failed to fetch updated performance rating aggregate: %v", err)
+	}
+
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(rating)
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"rating":         rating.Rating,
+		"average_rating": summary.AverageRating,
+		"total_votes":    summary.TotalVotes,
+	})
 }
 
 // PATCH /performances/{id}/rating
