@@ -212,32 +212,42 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate and store login verification OTP
-	otp := generateOTP()
-	expires := time.Now().Add(15 * time.Minute)
-	err = h.Queries.CreateOTP(r.Context(), db.CreateOTPParams{
-		Email:     user.Email,
-		OtpCode:   otp,
-		Purpose:   "LOGIN",
-		ExpiresAt: pgtype.Timestamptz{Time: expires, Valid: true},
-	})
+	// Generate Access Token (JWT)
+	accessToken, err := h.generateAccessToken(user.ID.String())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		_, _ = w.Write([]byte(`{"error":"Internal Error","message":"Failed to generate verification code"}`))
+		_, _ = w.Write([]byte(`{"error":"Internal Error","message":"Failed to generate access token"}`))
 		return
 	}
 
-	// Send OTP via Brevo email
-	if err := SendOTPEmail(user.Email, user.DisplayName, otp, "LOGIN"); err != nil {
-		fmt.Printf("[WARN] Failed to send login OTP email to %s: %v\n", user.Email, err)
+	// Generate and save Refresh Token
+	refreshToken := generateRandomToken()
+	err = h.Queries.CreateRefreshToken(r.Context(), db.CreateRefreshTokenParams{
+		UserID:    user.ID,
+		Token:     refreshToken,
+		ExpiresAt: pgtype.Timestamptz{Time: time.Now().Add(7 * 24 * time.Hour), Valid: true},
+	})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(`{"error":"Internal Error","message":"Failed to save session"}`))
+		return
+	}
+
+	resp := AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		User: UserPayload{
+			ID:          user.ID.String(),
+			Username:    user.Username,
+			DisplayName: user.DisplayName,
+			Email:       user.Email,
+			Bio:         user.Bio.String,
+			AvatarURL:   user.AvatarUrl.String,
+		},
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(map[string]interface{}{
-		"status":  "OTP_REQUIRED",
-		"message": "Verification code sent to email",
-		"email":   user.Email,
-	})
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 // POST /auth/verify-otp
