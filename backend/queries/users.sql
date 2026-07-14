@@ -73,8 +73,6 @@ SELECT id, username, display_name, bio, avatar_url, created_at
 FROM users
 WHERE id = $1 LIMIT 1;
 
-
-
 -- name: GetUserReviewCount :one
 SELECT (
     (SELECT COUNT(*) FROM match_reviews mr WHERE mr.user_id = $1) +
@@ -87,14 +85,8 @@ SELECT (
     (SELECT COUNT(*) FROM performance_ratings pr WHERE pr.user_id = $1)
 )::bigint AS rating_count;
 
--- name: GetUserListCount :one
-SELECT COUNT(*)::bigint AS list_count
-FROM lists l
-WHERE l.user_id = $1;
-
 -- name: GetUserLikesReceived :one
 SELECT (
-    (SELECT COUNT(*) FROM list_likes ll JOIN lists l ON ll.list_id = l.id WHERE l.user_id = $1) +
     (SELECT COUNT(*) FROM match_review_likes mrl JOIN match_reviews mr ON mrl.review_id = mr.id WHERE mr.user_id = $1) +
     (SELECT COUNT(*) FROM performance_review_likes prl JOIN performance_reviews pr ON prl.review_id = pr.id WHERE pr.user_id = $1) +
     (SELECT COUNT(*) FROM match_review_comment_likes mrcl JOIN match_review_comments mrc ON mrcl.comment_id = mrc.id WHERE mrc.user_id = $1)
@@ -133,13 +125,6 @@ WHERE prc.user_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
 
--- name: GetUserRecentLists :many
-SELECT l.id, l.user_id, l.title, l.description, l.cover_image_url, l.is_public, l.created_at, l.updated_at
-FROM lists l
-WHERE l.user_id = $1
-ORDER BY l.created_at DESC
-LIMIT $2 OFFSET $3;
-
 -- name: GetUserActivity :many
 SELECT 'match_review' AS activity_type, id, created_at, title AS description
 FROM match_reviews
@@ -156,10 +141,6 @@ UNION ALL
 SELECT 'performance_rating' AS activity_type, id, created_at, 'Rated a player performance' AS description
 FROM performance_ratings
 WHERE performance_ratings.user_id = $1
-UNION ALL
-SELECT 'list' AS activity_type, id, created_at, title AS description
-FROM lists
-WHERE lists.user_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
 

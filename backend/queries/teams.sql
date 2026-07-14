@@ -1,6 +1,6 @@
 -- name: GetTeamByID :one
 SELECT 
-    t.id, t.sport_id, t.country_id, t.name, t.short_name, t.slug, t.type, t.logo_url, t.founded_year, t.created_at, t.updated_at,
+    t.id, t.country_id, t.name, t.short_name, t.slug, t.type, t.logo_url, t.flag_emoji, t.founded_year, t.created_at, t.updated_at,
     c.name AS country_name
 FROM teams t
 LEFT JOIN countries c ON t.country_id = c.id
@@ -8,7 +8,7 @@ WHERE t.id = $1 LIMIT 1;
 
 -- name: GetTeamBySlug :one
 SELECT 
-    t.id, t.sport_id, t.country_id, t.name, t.short_name, t.slug, t.type, t.logo_url, t.founded_year, t.created_at, t.updated_at,
+    t.id, t.country_id, t.name, t.short_name, t.slug, t.type, t.logo_url, t.flag_emoji, t.founded_year, t.created_at, t.updated_at,
     c.name AS country_name
 FROM teams t
 LEFT JOIN countries c ON t.country_id = c.id
@@ -16,7 +16,7 @@ WHERE t.slug = $1 LIMIT 1;
 
 -- name: SearchTeams :many
 SELECT 
-    t.id, t.sport_id, t.country_id, t.name, t.short_name, t.slug, t.type, t.logo_url
+    t.id, t.country_id, t.name, t.short_name, t.slug, t.type, t.logo_url, t.flag_emoji
 FROM teams t
 WHERE t.name ILIKE $1 OR t.short_name ILIKE $1
 ORDER BY t.name
@@ -24,25 +24,25 @@ LIMIT $2 OFFSET $3;
 
 -- name: ListTeams :many
 SELECT 
-    t.id, t.sport_id, t.country_id, t.name, t.short_name, t.slug, t.type, t.logo_url, t.founded_year, t.created_at, t.updated_at
+    t.id, t.country_id, t.name, t.short_name, t.slug, t.type, t.logo_url, t.flag_emoji, t.founded_year, t.created_at, t.updated_at
 FROM teams t
 ORDER BY t.name
 LIMIT $1 OFFSET $2;
 
 -- name: CreateTeam :one
 INSERT INTO teams (
-    sport_id,
     country_id,
     name,
     short_name,
     slug,
     type,
     logo_url,
+    flag_emoji,
     founded_year
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8
 )
-RETURNING id, sport_id, country_id, name, short_name, slug, type, logo_url, founded_year, created_at, updated_at;
+RETURNING id, country_id, name, short_name, slug, type, logo_url, flag_emoji, founded_year, created_at, updated_at;
 
 -- name: UpdateTeam :one
 UPDATE teams
@@ -53,10 +53,11 @@ SET
     slug = COALESCE($5, slug),
     type = COALESCE($6, type),
     logo_url = COALESCE($7, logo_url),
-    founded_year = COALESCE($8, founded_year),
+    flag_emoji = COALESCE($8, flag_emoji),
+    founded_year = COALESCE($9, founded_year),
     updated_at = now()
 WHERE id = $1
-RETURNING id, sport_id, country_id, name, short_name, slug, type, logo_url, founded_year, created_at, updated_at;
+RETURNING id, country_id, name, short_name, slug, type, logo_url, flag_emoji, founded_year, created_at, updated_at;
 
 -- name: DeleteTeam :exec
 DELETE FROM teams
@@ -64,18 +65,16 @@ WHERE id = $1;
 
 -- name: GetTeamsByCountry :many
 SELECT 
-    t.id, t.sport_id, t.country_id, t.name, t.short_name, t.slug, t.type, t.logo_url
+    t.id, t.country_id, t.name, t.short_name, t.slug, t.type, t.logo_url, t.flag_emoji
 FROM teams t
 WHERE t.country_id = $1
 ORDER BY t.name;
 
-
-
 -- name: GetTeamMatches :many
 SELECT 
-    m.id, m.season_id, m.home_team_id, m.away_team_id, m.title, m.slug, m.utc_datetime, m.venue, m.home_score, m.away_score,
-    ht.name AS home_team_name, ht.logo_url AS home_team_logo_url,
-    at.name AS away_team_name, at.logo_url AS away_team_logo_url
+    m.id, m.home_team_id, m.away_team_id, m.title, m.slug, m.utc_datetime, m.venue, m.home_score, m.away_score,
+    ht.name AS home_team_name, ht.logo_url AS home_team_logo_url, ht.flag_emoji AS home_team_flag_emoji,
+    at.name AS away_team_name, at.logo_url AS away_team_logo_url, at.flag_emoji AS away_team_flag_emoji
 FROM matches m
 JOIN teams ht ON m.home_team_id = ht.id
 JOIN teams at ON m.away_team_id = at.id
@@ -85,9 +84,9 @@ LIMIT $2 OFFSET $3;
 
 -- name: GetTeamUpcomingMatches :many
 SELECT 
-    m.id, m.season_id, m.home_team_id, m.away_team_id, m.title, m.slug, m.utc_datetime, m.venue,
-    ht.name AS home_team_name, ht.logo_url AS home_team_logo_url,
-    at.name AS away_team_name, at.logo_url AS away_team_logo_url
+    m.id, m.home_team_id, m.away_team_id, m.title, m.slug, m.utc_datetime, m.venue,
+    ht.name AS home_team_name, ht.logo_url AS home_team_logo_url, ht.flag_emoji AS home_team_flag_emoji,
+    at.name AS away_team_name, at.logo_url AS away_team_logo_url, at.flag_emoji AS away_team_flag_emoji
 FROM matches m
 JOIN teams ht ON m.home_team_id = ht.id
 JOIN teams at ON m.away_team_id = at.id
@@ -97,9 +96,9 @@ LIMIT $2 OFFSET $3;
 
 -- name: GetTeamCompletedMatches :many
 SELECT 
-    m.id, m.season_id, m.home_team_id, m.away_team_id, m.title, m.slug, m.utc_datetime, m.venue, m.home_score, m.away_score,
-    ht.name AS home_team_name, ht.logo_url AS home_team_logo_url,
-    at.name AS away_team_name, at.logo_url AS away_team_logo_url
+    m.id, m.home_team_id, m.away_team_id, m.title, m.slug, m.utc_datetime, m.venue, m.home_score, m.away_score,
+    ht.name AS home_team_name, ht.logo_url AS home_team_logo_url, ht.flag_emoji AS home_team_flag_emoji,
+    at.name AS away_team_name, at.logo_url AS away_team_logo_url, at.flag_emoji AS away_team_flag_emoji
 FROM matches m
 JOIN teams ht ON m.home_team_id = ht.id
 JOIN teams at ON m.away_team_id = at.id
@@ -109,7 +108,7 @@ LIMIT $2 OFFSET $3;
 
 -- name: GetTeamPerformances :many
 SELECT 
-    p.id AS performance_id, p.title AS performance_title, p.cover_image_url AS performance_cover_image, p.minutes_played, p.provider_rating,
+    p.id AS performance_id, p.title AS performance_title, p.cover_image_url AS performance_cover_image, p.minutes_played, p.average_rating,
     pl.id AS player_id, pl.name AS player_name, pl.slug AS player_slug, pl.photo_url AS player_photo_url,
     m.id AS match_id, m.title AS match_title, m.slug AS match_slug, m.utc_datetime AS match_utc_datetime
 FROM performances p
@@ -146,7 +145,7 @@ LIMIT $2 OFFSET $3;
 
 -- name: GetRelatedTeams :many
 SELECT 
-    t.id, t.name, t.short_name, t.slug, t.logo_url
+    t.id, t.name, t.short_name, t.slug, t.logo_url, t.flag_emoji
 FROM teams t
 WHERE t.id <> $1 AND t.country_id = (SELECT country_id FROM teams WHERE id = $1) AND t.type = (SELECT type FROM teams WHERE id = $1)
 ORDER BY t.name

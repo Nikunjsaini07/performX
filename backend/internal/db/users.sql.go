@@ -130,10 +130,6 @@ UNION ALL
 SELECT 'performance_rating' AS activity_type, id, created_at, 'Rated a player performance' AS description
 FROM performance_ratings
 WHERE performance_ratings.user_id = $1
-UNION ALL
-SELECT 'list' AS activity_type, id, created_at, title AS description
-FROM lists
-WHERE lists.user_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3
 `
@@ -295,7 +291,6 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (GetUs
 
 const getUserLikesReceived = `-- name: GetUserLikesReceived :one
 SELECT (
-    (SELECT COUNT(*) FROM list_likes ll JOIN lists l ON ll.list_id = l.id WHERE l.user_id = $1) +
     (SELECT COUNT(*) FROM match_review_likes mrl JOIN match_reviews mr ON mrl.review_id = mr.id WHERE mr.user_id = $1) +
     (SELECT COUNT(*) FROM performance_review_likes prl JOIN performance_reviews pr ON prl.review_id = pr.id WHERE pr.user_id = $1) +
     (SELECT COUNT(*) FROM match_review_comment_likes mrcl JOIN match_review_comments mrc ON mrcl.comment_id = mrc.id WHERE mrc.user_id = $1)
@@ -307,19 +302,6 @@ func (q *Queries) GetUserLikesReceived(ctx context.Context, userID pgtype.UUID) 
 	var likes_count int64
 	err := row.Scan(&likes_count)
 	return likes_count, err
-}
-
-const getUserListCount = `-- name: GetUserListCount :one
-SELECT COUNT(*)::bigint AS list_count
-FROM lists l
-WHERE l.user_id = $1
-`
-
-func (q *Queries) GetUserListCount(ctx context.Context, userID pgtype.UUID) (int64, error) {
-	row := q.db.QueryRow(ctx, getUserListCount, userID)
-	var list_count int64
-	err := row.Scan(&list_count)
-	return list_count, err
 }
 
 const getUserRatingCount = `-- name: GetUserRatingCount :one
@@ -377,60 +359,6 @@ func (q *Queries) GetUserRecentComments(ctx context.Context, arg GetUserRecentCo
 			&i.ID,
 			&i.ReviewID,
 			&i.Body,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getUserRecentLists = `-- name: GetUserRecentLists :many
-SELECT l.id, l.user_id, l.title, l.description, l.cover_image_url, l.is_public, l.created_at, l.updated_at
-FROM lists l
-WHERE l.user_id = $1
-ORDER BY l.created_at DESC
-LIMIT $2 OFFSET $3
-`
-
-type GetUserRecentListsParams struct {
-	UserID pgtype.UUID `db:"user_id" json:"user_id"`
-	Limit  int32       `db:"limit" json:"limit"`
-	Offset int32       `db:"offset" json:"offset"`
-}
-
-type GetUserRecentListsRow struct {
-	ID            pgtype.UUID        `db:"id" json:"id"`
-	UserID        pgtype.UUID        `db:"user_id" json:"user_id"`
-	Title         string             `db:"title" json:"title"`
-	Description   pgtype.Text        `db:"description" json:"description"`
-	CoverImageUrl pgtype.Text        `db:"cover_image_url" json:"cover_image_url"`
-	IsPublic      bool               `db:"is_public" json:"is_public"`
-	CreatedAt     pgtype.Timestamptz `db:"created_at" json:"created_at"`
-	UpdatedAt     pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
-}
-
-func (q *Queries) GetUserRecentLists(ctx context.Context, arg GetUserRecentListsParams) ([]GetUserRecentListsRow, error) {
-	rows, err := q.db.Query(ctx, getUserRecentLists, arg.UserID, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetUserRecentListsRow
-	for rows.Next() {
-		var i GetUserRecentListsRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Title,
-			&i.Description,
-			&i.CoverImageUrl,
-			&i.IsPublic,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

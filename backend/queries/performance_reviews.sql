@@ -14,7 +14,8 @@ SELECT
     pr.id, pr.performance_id, pr.user_id, pr.title, pr.content, pr.created_at, pr.updated_at,
     u.username AS author_username, u.display_name AS author_display_name, u.avatar_url AS author_avatar_url,
     p.title AS performance_title, pl.name AS player_name, m.title AS match_title,
-    COALESCE(likes.likes_count, 0)::bigint AS likes_count
+    COALESCE(likes.likes_count, 0)::bigint AS likes_count,
+    COALESCE(comments.comment_count, 0)::bigint AS comment_count
 FROM performance_reviews pr
 JOIN users u ON pr.user_id = u.id
 JOIN performances p ON pr.performance_id = p.id
@@ -25,13 +26,22 @@ LEFT JOIN (
     FROM performance_review_likes
     GROUP BY review_id
 ) likes ON pr.id = likes.review_id
+LEFT JOIN (
+    SELECT review_id, COUNT(*) AS comment_count
+    FROM performance_review_comments
+    GROUP BY review_id
+) comments ON pr.id = comments.review_id
 WHERE pr.id = $1 LIMIT 1;
 
 -- name: GetPerformanceReviews :many
 SELECT 
     pr.id, pr.performance_id, pr.user_id, pr.title, pr.content, pr.created_at, pr.updated_at,
     u.username AS author_username, u.display_name AS author_display_name, u.avatar_url AS author_avatar_url,
-    COALESCE(likes.likes_count, 0)::bigint AS likes_count
+    COALESCE(likes.likes_count, 0)::bigint AS likes_count,
+    COALESCE(comments.comment_count, 0)::bigint AS comment_count,
+    CASE WHEN $4::uuid IS NOT NULL THEN 
+        EXISTS(SELECT 1 FROM performance_review_likes WHERE review_id = pr.id AND user_id = $4)
+    ELSE false END AS liked_by_me
 FROM performance_reviews pr
 JOIN users u ON pr.user_id = u.id
 LEFT JOIN (
@@ -39,6 +49,11 @@ LEFT JOIN (
     FROM performance_review_likes
     GROUP BY review_id
 ) likes ON pr.id = likes.review_id
+LEFT JOIN (
+    SELECT review_id, COUNT(*) AS comment_count
+    FROM performance_review_comments
+    GROUP BY review_id
+) comments ON pr.id = comments.review_id
 WHERE pr.performance_id = $1
 ORDER BY pr.created_at DESC
 LIMIT $2 OFFSET $3;
@@ -89,7 +104,8 @@ SELECT
     pr.id, pr.performance_id, pr.user_id, pr.title, pr.content, pr.created_at, pr.updated_at,
     u.username AS author_username, u.display_name AS author_display_name, u.avatar_url AS author_avatar_url,
     p.title AS performance_title, pl.name AS player_name,
-    COALESCE(likes.likes_count, 0)::bigint AS likes_count
+    COALESCE(likes.likes_count, 0)::bigint AS likes_count,
+    COALESCE(comments.comment_count, 0)::bigint AS comment_count
 FROM performance_reviews pr
 JOIN users u ON pr.user_id = u.id
 JOIN performances p ON pr.performance_id = p.id
@@ -99,6 +115,11 @@ LEFT JOIN (
     FROM performance_review_likes
     GROUP BY review_id
 ) likes ON pr.id = likes.review_id
+LEFT JOIN (
+    SELECT review_id, COUNT(*) AS comment_count
+    FROM performance_review_comments
+    GROUP BY review_id
+) comments ON pr.id = comments.review_id
 ORDER BY pr.created_at DESC
 LIMIT $1 OFFSET $2;
 
@@ -107,7 +128,8 @@ SELECT
     pr.id, pr.performance_id, pr.user_id, pr.title, pr.content, pr.created_at, pr.updated_at,
     u.username AS author_username, u.display_name AS author_display_name, u.avatar_url AS author_avatar_url,
     p.title AS performance_title, pl.name AS player_name,
-    COALESCE(likes.likes_count, 0)::bigint AS likes_count
+    COALESCE(likes.likes_count, 0)::bigint AS likes_count,
+    COALESCE(comments.comment_count, 0)::bigint AS comment_count
 FROM performance_reviews pr
 JOIN users u ON pr.user_id = u.id
 JOIN performances p ON pr.performance_id = p.id
@@ -117,6 +139,11 @@ LEFT JOIN (
     FROM performance_review_likes
     GROUP BY review_id
 ) likes ON pr.id = likes.review_id
+LEFT JOIN (
+    SELECT review_id, COUNT(*) AS comment_count
+    FROM performance_review_comments
+    GROUP BY review_id
+) comments ON pr.id = comments.review_id
 ORDER BY likes_count DESC, pr.created_at DESC
 LIMIT $1 OFFSET $2;
 

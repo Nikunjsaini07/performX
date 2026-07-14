@@ -51,7 +51,7 @@ WHERE performance_id = $1;
 -- name: GetTopPerformancesByStat :many
 SELECT 
     ps.performance_id, ps.value,
-    p.title AS performance_title, p.provider_rating,
+    p.title AS performance_title, p.average_rating,
     pl.name AS player_name, pl.slug AS player_slug, pl.photo_url AS player_photo_url,
     m.title AS match_title, m.slug AS match_slug, m.utc_datetime AS match_utc_datetime
 FROM performance_stats ps
@@ -59,5 +59,5 @@ JOIN performances p ON ps.performance_id = p.id
 JOIN players pl ON p.player_id = pl.id
 JOIN matches m ON p.match_id = m.id
 WHERE ps.stat_type_id = $1
-ORDER BY ps.value DESC, p.provider_rating DESC
+ORDER BY ps.value DESC, p.average_rating DESC
 LIMIT $2 OFFSET $3;

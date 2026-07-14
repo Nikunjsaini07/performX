@@ -1,0 +1,3 @@
+ALTER TABLE performances
+ADD COLUMN slug TEXT UNIQUE,
+ADD COLUMN tagline TEXT;

@@ -1,2 +1,59 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Next.js
+.next/
+out/
+build/
+.swc/
+
+# Go
+bin/
+obj/
+*.exe
+*.exe~
+*.dll
+*.soDEsi
+*.dylib
+admin-tool
 docs
+imolement
+# Local agent/plugin experiments
+.agents/
+# Environment Variables
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# OS & Editor
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Project specific
+backend/tmp/
+frontend/.turbo/
+.tools
+.kiro
+
+# Generated Seed and Temp Files
+backend/seed_api*.sql
+backend/temp_zafronix.json

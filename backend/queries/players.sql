@@ -1,6 +1,6 @@
 -- name: GetPlayerByID :one
 SELECT 
-    p.id, p.sport_id, p.name, p.slug, p.full_name, p.known_as, p.date_of_birth, p.place_of_birth, p.country_id, p.photo_url, p.height_cm, p.weight_kg, p.shirt_name, p.created_at, p.updated_at,
+    p.id, p.name, p.slug, p.full_name, p.known_as, p.date_of_birth, p.place_of_birth, p.country_id, p.photo_url, p.height_cm, p.weight_kg, p.shirt_name, p.created_at, p.updated_at,
     c.name AS country_name, c.iso2 AS country_iso2, c.iso3 AS country_iso3
 FROM players p
 LEFT JOIN countries c ON p.country_id = c.id
@@ -8,7 +8,7 @@ WHERE p.id = $1 LIMIT 1;
 
 -- name: GetPlayerBySlug :one
 SELECT 
-    p.id, p.sport_id, p.name, p.slug, p.full_name, p.known_as, p.date_of_birth, p.place_of_birth, p.country_id, p.photo_url, p.height_cm, p.weight_kg, p.shirt_name, p.created_at, p.updated_at,
+    p.id, p.name, p.slug, p.full_name, p.known_as, p.date_of_birth, p.place_of_birth, p.country_id, p.photo_url, p.height_cm, p.weight_kg, p.shirt_name, p.created_at, p.updated_at,
     c.name AS country_name, c.iso2 AS country_iso2, c.iso3 AS country_iso3
 FROM players p
 LEFT JOIN countries c ON p.country_id = c.id
@@ -16,7 +16,7 @@ WHERE p.slug = $1 LIMIT 1;
 
 -- name: SearchPlayers :many
 SELECT 
-    p.id, p.sport_id, p.name, p.slug, p.known_as, p.photo_url, p.shirt_name,
+    p.id, p.name, p.slug, p.known_as, p.photo_url, p.shirt_name,
     c.name AS country_name
 FROM players p
 LEFT JOIN countries c ON p.country_id = c.id
@@ -26,7 +26,7 @@ LIMIT $2 OFFSET $3;
 
 -- name: ListPlayers :many
 SELECT 
-    p.id, p.sport_id, p.name, p.slug, p.full_name, p.known_as, p.date_of_birth, p.country_id, p.photo_url, p.height_cm, p.weight_kg, p.shirt_name, p.created_at, p.updated_at,
+    p.id, p.name, p.slug, p.full_name, p.known_as, p.date_of_birth, p.country_id, p.photo_url, p.height_cm, p.weight_kg, p.shirt_name, p.created_at, p.updated_at,
     c.name AS country_name
 FROM players p
 LEFT JOIN countries c ON p.country_id = c.id
@@ -35,7 +35,6 @@ LIMIT $1 OFFSET $2;
 
 -- name: CreatePlayer :one
 INSERT INTO players (
-    sport_id,
     name,
     slug,
     full_name,
@@ -48,9 +47,9 @@ INSERT INTO players (
     weight_kg,
     shirt_name
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+    $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 )
-RETURNING id, sport_id, name, slug, full_name, known_as, date_of_birth, place_of_birth, country_id, photo_url, height_cm, weight_kg, shirt_name, created_at, updated_at;
+RETURNING id, name, slug, full_name, known_as, date_of_birth, place_of_birth, country_id, photo_url, height_cm, weight_kg, shirt_name, created_at, updated_at;
 
 -- name: UpdatePlayer :one
 UPDATE players
@@ -68,7 +67,7 @@ SET
     shirt_name = COALESCE($12, shirt_name),
     updated_at = now()
 WHERE id = $1
-RETURNING id, sport_id, name, slug, full_name, known_as, date_of_birth, place_of_birth, country_id, photo_url, height_cm, weight_kg, shirt_name, created_at, updated_at;
+RETURNING id, name, slug, full_name, known_as, date_of_birth, place_of_birth, country_id, photo_url, height_cm, weight_kg, shirt_name, created_at, updated_at;
 
 -- name: DeletePlayer :exec
 DELETE FROM players
@@ -76,7 +75,7 @@ WHERE id = $1;
 
 -- name: GetPlayersByCountry :many
 SELECT 
-    p.id, p.sport_id, p.name, p.slug, p.known_as, p.photo_url, p.shirt_name
+    p.id, p.name, p.slug, p.known_as, p.photo_url, p.shirt_name
 FROM players p
 WHERE p.country_id = $1
 ORDER BY p.name
@@ -84,49 +83,35 @@ LIMIT $2 OFFSET $3;
 
 -- name: GetPlayersByTeam :many
 SELECT 
-    p.id, p.sport_id, p.name, p.slug, p.known_as, p.photo_url, p.shirt_name,
+    p.id, p.name, p.slug, p.known_as, p.photo_url, p.shirt_name,
     pt.jersey_number, pt.start_date, pt.is_active
 FROM player_teams pt
 JOIN players p ON pt.player_id = p.id
 WHERE pt.team_id = $1 AND pt.is_active = TRUE
 ORDER BY p.name;
 
-
-
 -- name: GetPlayerPerformances :many
 SELECT 
-    p.id AS performance_id, p.title AS performance_title, p.cover_image_url AS performance_cover_image, p.minutes_played, p.provider_rating, p.created_at,
+    p.id AS performance_id, p.title AS performance_title, p.cover_image_url AS performance_cover_image, p.minutes_played, p.average_rating, p.created_at,
     m.id AS match_id, m.title AS match_title, m.slug AS match_slug, m.utc_datetime AS match_utc_datetime, m.home_score, m.away_score,
     ht.name AS home_team_name, ht.logo_url AS home_team_logo_url,
-    at.name AS away_team_name, at.logo_url AS away_team_logo_url,
-    COALESCE(avg_pr.average_rating, 0.0)::numeric(2,1) AS average_rating
+    at.name AS away_team_name, at.logo_url AS away_team_logo_url
 FROM performances p
 JOIN matches m ON p.match_id = m.id
 JOIN teams ht ON m.home_team_id = ht.id
 JOIN teams at ON m.away_team_id = at.id
-LEFT JOIN (
-    SELECT performance_id, AVG(rating) AS average_rating
-    FROM performance_ratings
-    GROUP BY performance_id
-) avg_pr ON p.id = avg_pr.performance_id
 WHERE p.player_id = $1
 ORDER BY m.utc_datetime DESC
 LIMIT $2 OFFSET $3;
 
 -- name: GetPlayerTopRatedPerformances :many
 SELECT 
-    p.id AS performance_id, p.title AS performance_title, p.cover_image_url AS performance_cover_image, p.minutes_played, p.provider_rating,
-    m.id AS match_id, m.title AS match_title, m.slug AS match_slug, m.utc_datetime AS match_utc_datetime,
-    COALESCE(avg_pr.average_rating, 0.0)::numeric(2,1) AS average_rating
+    p.id AS performance_id, p.title AS performance_title, p.cover_image_url AS performance_cover_image, p.minutes_played, p.average_rating,
+    m.id AS match_id, m.title AS match_title, m.slug AS match_slug, m.utc_datetime AS match_utc_datetime
 FROM performances p
 JOIN matches m ON p.match_id = m.id
-JOIN (
-    SELECT performance_id, AVG(rating) AS average_rating
-    FROM performance_ratings
-    GROUP BY performance_id
-) avg_pr ON p.id = avg_pr.performance_id
 WHERE p.player_id = $1
-ORDER BY average_rating DESC, m.utc_datetime DESC
+ORDER BY p.average_rating DESC, m.utc_datetime DESC
 LIMIT $2 OFFSET $3;
 
 -- name: GetPlayerAverageRating :one
@@ -206,7 +191,7 @@ SELECT
 FROM performance_ratings pr
 JOIN performances p ON pr.performance_id = p.id
 JOIN matches m ON p.match_id = m.id
-JOIN users u ON pr.user_id = u.id
+JOIN users u ON r.user_id = u.id
 WHERE p.player_id = $1
 ORDER BY pr.created_at DESC
 LIMIT $2 OFFSET $3;

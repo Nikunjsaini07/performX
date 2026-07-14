@@ -13,17 +13,17 @@ module.exports = {
       colors: {
         background: 'var(--background)',
         foreground: 'var(--foreground)',
+        surface: 'var(--surface)',
+        'surface-2': 'var(--surface-2)',
+        rating: 'var(--rating)',
         primary: {
           DEFAULT: 'var(--primary)',
           foreground: 'var(--primary-foreground)',
-        },
-        secondary: {
-          DEFAULT: 'var(--secondary)',
-          foreground: 'var(--secondary-foreground)',
+          dim: 'var(--primary-dim)',
         },
         accent: {
-          DEFAULT: 'var(--accent)',
-          foreground: 'var(--accent-foreground)',
+          DEFAULT: 'var(--primary)',
+          foreground: 'var(--primary-foreground)',
         },
         muted: {
           DEFAULT: 'var(--muted)',
@@ -39,13 +39,10 @@ module.exports = {
       },
       borderRadius: {
         DEFAULT: 'var(--radius)',
-        lg: 'calc(var(--radius) + 4px)',
-        xl: 'calc(var(--radius) + 8px)',
-        '2xl': 'calc(var(--radius) + 16px)',
       },
       fontFamily: {
         sans: ['var(--font-sans)'],
-        display: ['Playfair Display', 'serif'],
+        display: ['var(--font-display)'],
       },
       animation: {
         'fade-in': 'fadeIn 0.4s ease forwards',

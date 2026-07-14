@@ -1,66 +1,57 @@
 import React from 'react';
 import Link from 'next/link';
-import Navbar from '@/components/navbar';
-import ArchiveFooter from '@/app/components/ArchiveFooter';
-import { getTeams, Team } from '@/lib/api';
-import { Search, Shield } from 'lucide-react';
+import type { Metadata } from 'next';
+import { Flag } from 'lucide-react';
+import { getTeams } from '@/lib/data';
+import TeamCrest from '@/components/TeamCrest';
+
+export const revalidate = 60;
+
+export const metadata: Metadata = {
+  title: 'Teams',
+  description: 'All 48 nations competing at the FIFA World Cup 2026.',
+};
 
 export default async function TeamsPage() {
-  let teams: Team[] = [];
-  try {
-    teams = await getTeams(60);
-  } catch (error) {
-    console.error('Failed to fetch teams:', error);
-  }
+  const teams = await getTeams(64);
 
   return (
-    <main className="min-h-screen bg-background">
-      <Navbar />
-      <section className="pt-28 pb-20">
-        <div className="max-w-screen-2xl mx-auto px-6 lg:px-10">
-          <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-            <div>
-              <p className="section-label mb-2">48 Nations</p>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-foreground">Teams</h1>
-              <p className="mt-3 max-w-2xl text-sm text-muted-foreground">
-                Browse every World Cup side, then jump into the performances and matches that define their tournament.
-              </p>
-            </div>
-            <div className="relative w-full md:w-80">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input
-                className="w-full rounded-lg border border-border bg-muted py-2.5 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                placeholder="Search is coming with live filters"
-                disabled
-              />
-            </div>
-          </div>
+    <main className="container-max container-px pb-12 pt-24">
+      <header className="mb-8">
+        <span className="section-label mb-2 block">48 nations, one trophy</span>
+        <h1 className="font-display text-[clamp(2rem,4vw,2.75rem)] font-bold text-foreground">Teams</h1>
+        <p className="mt-2 max-w-2xl text-muted-foreground">
+          Every nation at the World Cup. Follow your side through the group stage and into the knockouts.
+        </p>
+      </header>
 
-          {teams.length === 0 ? (
-            <div className="archive-card p-12 text-center text-muted-foreground">No teams found. Ensure the API is running.</div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-              {teams.map((team) => (
-                <Link
-                  key={team.id}
-                  href={`/performances?team=${team.slug}`}
-                  className="archive-card group p-5 text-center hover:border-primary/35 focus:outline-none focus:ring-2 focus:ring-primary/50"
-                >
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
-                    {team.logo_url ? <img src={team.logo_url} alt="" className="h-full w-full object-cover" /> : <span className="text-4xl">{team.flag_emoji || team.short_name}</span>}
-                  </div>
-                  <h2 className="text-sm font-bold text-foreground leading-tight">{team.name}</h2>
-                  <div className="mt-3 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-                    <Shield size={12} className="text-primary" />
-                    <span>{team.short_name}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
+      {teams.length === 0 ? (
+        <div className="card-shell flex flex-col items-center gap-3 px-6 py-20 text-center">
+          <Flag size={30} className="text-muted-foreground/50" />
+          <p className="font-display text-lg font-bold text-foreground">No teams yet</p>
+          <p className="max-w-sm text-sm text-muted-foreground">The team list will appear here once published.</p>
         </div>
-      </section>
-      <ArchiveFooter />
+      ) : (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+          {teams.map((t) => (
+            <Link
+              key={t.id}
+              href={`/teams/${t.slug}`}
+              className="card-shell card-lift group flex flex-col items-center gap-3 p-5 text-center"
+            >
+              <TeamCrest name={t.name} shortName={t.short_name} logoUrl={t.logo_url} flagEmoji={t.flag_emoji} size={56} />
+              <div>
+                <p className="line-clamp-1 text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+                  {t.name}
+                </p>
+                {t.short_name && t.short_name !== t.name && (
+                  <p className="text-xs text-muted-foreground">{t.short_name}</p>
+                )}
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </main>
   );
 }

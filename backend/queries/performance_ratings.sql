@@ -35,11 +35,31 @@ FROM performance_ratings
 WHERE performance_id = $1 AND user_id = $2 LIMIT 1;
 
 -- name: GetPerformanceAverageRating :one
-SELECT 
-    COALESCE(AVG(rating), 0.0)::numeric(2,1) AS average_rating,
-    COUNT(id)::bigint AS total_votes
-FROM performance_ratings
-WHERE performance_id = $1;
+-- Folds the provider seed rating in as the first vote so the live detail-page
+-- value matches the stored average_rating column.
+SELECT
+    ((p.seed_rating + COALESCE(SUM(pr.rating), 0)) / (1 + COUNT(pr.id)))::numeric(3,1) AS average_rating,
+    (1 + COUNT(pr.id))::bigint AS total_votes
+FROM performances p
+LEFT JOIN performance_ratings pr ON pr.performance_id = p.id
+WHERE p.id = $1
+GROUP BY p.seed_rating;
+
+-- name: RefreshPerformanceRating :exec
+-- Recomputes and persists the stored average_rating/total_votes for a
+-- performance (seed vote + community votes). Call after any rating mutation.
+UPDATE performances SET
+    average_rating = sub.avg,
+    total_votes = sub.cnt
+FROM (
+    SELECT ((p.seed_rating + COALESCE(SUM(pr.rating), 0)) / (1 + COUNT(pr.id)))::numeric(3,1) AS avg,
+           (1 + COUNT(pr.id))::int AS cnt
+    FROM performances p
+    LEFT JOIN performance_ratings pr ON pr.performance_id = p.id
+    WHERE p.id = $1
+    GROUP BY p.seed_rating
+) sub
+WHERE performances.id = $1;
 
 -- name: GetPerformanceRatingsCount :one
 SELECT COUNT(*)::bigint AS ratings_count
@@ -48,7 +68,7 @@ WHERE performance_id = $1;
 
 -- name: GetRecentlyRatedPerformances :many
 SELECT 
-    p.id, p.match_id, p.player_id, p.title, p.cover_image_url, p.provider_rating,
+    p.id, p.match_id, p.player_id, p.title, p.cover_image_url, p.average_rating,
     pl.name AS player_name, m.title AS match_title,
     latest_rating.max_created_at AS rated_at
 FROM (
