@@ -21,10 +21,10 @@ export async function generateMetadata({
   return { title: profile ? `${profile.display_name} (@${profile.username})` : 'Profile' };
 }
 
-function entityHref(type: 'match' | 'performance', entityId: string): string | null {
-  // Performance detail is keyed by id; match detail is keyed by slug, which we
-  // don't have here, so only performance rows link out.
-  return type === 'performance' ? `/performances/${entityId}` : null;
+function entityHref(type: 'match' | 'performance', entityId: string, matchSlug?: string): string | null {
+  if (type === 'performance') return `/performances/${entityId}`;
+  if (type === 'match' && matchSlug) return `/matches/${matchSlug}`;
+  return null;
 }
 
 export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
@@ -98,7 +98,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           ) : (
             <div className="space-y-3">
               {reviews.map((r: UserReviewRow) => {
-                const href = entityHref(r.review_type, r.entity_id);
+                const href = entityHref(r.review_type, r.entity_id, r.match_slug);
                 const body = (
                   <article className="card-shell card-lift p-4">
                     <div className="mb-1.5 flex items-center gap-2">
@@ -131,7 +131,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ userna
           ) : (
             <div className="space-y-3">
               {ratings.map((r: UserRatingRow) => {
-                const href = entityHref(r.rating_type, r.entity_id);
+                const href = entityHref(r.rating_type, r.entity_id, r.match_slug);
                 const body = (
                   <article className="card-shell card-lift flex items-center justify-between gap-3 p-4">
                     <div className="flex items-center gap-2">

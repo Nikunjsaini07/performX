@@ -93,22 +93,24 @@ SELECT (
 )::bigint AS likes_count;
 
 -- name: GetUserRecentReviews :many
-SELECT 'match' AS review_type, mr.id, mr.match_id AS entity_id, mr.title, mr.content, mr.created_at, mr.updated_at
+SELECT 'match' AS review_type, mr.id, mr.match_id AS entity_id, mr.title, mr.content, mr.created_at, mr.updated_at, COALESCE(m.slug, '')::text AS match_slug
 FROM match_reviews mr
+JOIN matches m ON mr.match_id = m.id
 WHERE mr.user_id = $1
 UNION ALL
-SELECT 'performance' AS review_type, pr.id, pr.performance_id AS entity_id, pr.title, pr.content, pr.created_at, pr.updated_at
+SELECT 'performance' AS review_type, pr.id, pr.performance_id AS entity_id, pr.title, pr.content, pr.created_at, pr.updated_at, ''::text AS match_slug
 FROM performance_reviews pr
 WHERE pr.user_id = $1
 ORDER BY created_at DESC
 LIMIT $2 OFFSET $3;
 
 -- name: GetUserRecentRatings :many
-SELECT 'match' AS rating_type, mr.id, mr.match_id AS entity_id, mr.rating, mr.created_at, mr.updated_at
+SELECT 'match' AS rating_type, mr.id, mr.match_id AS entity_id, mr.rating, mr.created_at, mr.updated_at, COALESCE(m.slug, '')::text AS match_slug
 FROM match_ratings mr
+JOIN matches m ON mr.match_id = m.id
 WHERE mr.user_id = $1
 UNION ALL
-SELECT 'performance' AS rating_type, pr.id, pr.performance_id AS entity_id, pr.rating, pr.created_at, pr.updated_at
+SELECT 'performance' AS rating_type, pr.id, pr.performance_id AS entity_id, pr.rating, pr.created_at, pr.updated_at, ''::text AS match_slug
 FROM performance_ratings pr
 WHERE pr.user_id = $1
 ORDER BY created_at DESC

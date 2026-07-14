@@ -316,8 +316,11 @@ export async function updateAvatar(token: string, avatar_url: string): Promise<U
 }
 
 export async function uploadToCloudinary(file: File): Promise<string> {
-  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dbcflpua9';
-  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset';
+  const rawCloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dbcflpua9';
+  const rawPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'unsigned_preset';
+  
+  const cloudName = rawCloudName.replace(/['"]/g, '').trim();
+  const uploadPreset = rawPreset.replace(/['"]/g, '').trim();
 
   const formData = new FormData();
   formData.append('file', file);
@@ -713,6 +716,7 @@ export interface UserReviewRow {
   content?: string;
   created_at: string;
   updated_at?: string;
+  match_slug?: string;
 }
 
 export interface UserRatingRow {
@@ -722,6 +726,7 @@ export interface UserRatingRow {
   rating: number;
   created_at: string;
   updated_at?: string;
+  match_slug?: string;
 }
 
 export async function getUserProfile(username: string): Promise<UserProfile> {

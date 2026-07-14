@@ -373,11 +373,12 @@ func (q *Queries) GetUserRecentComments(ctx context.Context, arg GetUserRecentCo
 }
 
 const getUserRecentRatings = `-- name: GetUserRecentRatings :many
-SELECT 'match' AS rating_type, mr.id, mr.match_id AS entity_id, mr.rating, mr.created_at, mr.updated_at
+SELECT 'match' AS rating_type, mr.id, mr.match_id AS entity_id, mr.rating, mr.created_at, mr.updated_at, COALESCE(m.slug, '')::text AS match_slug
 FROM match_ratings mr
+JOIN matches m ON mr.match_id = m.id
 WHERE mr.user_id = $1
 UNION ALL
-SELECT 'performance' AS rating_type, pr.id, pr.performance_id AS entity_id, pr.rating, pr.created_at, pr.updated_at
+SELECT 'performance' AS rating_type, pr.id, pr.performance_id AS entity_id, pr.rating, pr.created_at, pr.updated_at, ''::text AS match_slug
 FROM performance_ratings pr
 WHERE pr.user_id = $1
 ORDER BY created_at DESC
@@ -397,6 +398,7 @@ type GetUserRecentRatingsRow struct {
 	Rating     pgtype.Numeric     `db:"rating" json:"rating"`
 	CreatedAt  pgtype.Timestamptz `db:"created_at" json:"created_at"`
 	UpdatedAt  pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+	MatchSlug  string             `db:"match_slug" json:"match_slug"`
 }
 
 func (q *Queries) GetUserRecentRatings(ctx context.Context, arg GetUserRecentRatingsParams) ([]GetUserRecentRatingsRow, error) {
@@ -415,6 +417,7 @@ func (q *Queries) GetUserRecentRatings(ctx context.Context, arg GetUserRecentRat
 			&i.Rating,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.MatchSlug,
 		); err != nil {
 			return nil, err
 		}
@@ -427,11 +430,12 @@ func (q *Queries) GetUserRecentRatings(ctx context.Context, arg GetUserRecentRat
 }
 
 const getUserRecentReviews = `-- name: GetUserRecentReviews :many
-SELECT 'match' AS review_type, mr.id, mr.match_id AS entity_id, mr.title, mr.content, mr.created_at, mr.updated_at
+SELECT 'match' AS review_type, mr.id, mr.match_id AS entity_id, mr.title, mr.content, mr.created_at, mr.updated_at, COALESCE(m.slug, '')::text AS match_slug
 FROM match_reviews mr
+JOIN matches m ON mr.match_id = m.id
 WHERE mr.user_id = $1
 UNION ALL
-SELECT 'performance' AS review_type, pr.id, pr.performance_id AS entity_id, pr.title, pr.content, pr.created_at, pr.updated_at
+SELECT 'performance' AS review_type, pr.id, pr.performance_id AS entity_id, pr.title, pr.content, pr.created_at, pr.updated_at, ''::text AS match_slug
 FROM performance_reviews pr
 WHERE pr.user_id = $1
 ORDER BY created_at DESC
@@ -452,6 +456,7 @@ type GetUserRecentReviewsRow struct {
 	Content    string             `db:"content" json:"content"`
 	CreatedAt  pgtype.Timestamptz `db:"created_at" json:"created_at"`
 	UpdatedAt  pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
+	MatchSlug  string             `db:"match_slug" json:"match_slug"`
 }
 
 func (q *Queries) GetUserRecentReviews(ctx context.Context, arg GetUserRecentReviewsParams) ([]GetUserRecentReviewsRow, error) {
@@ -471,6 +476,7 @@ func (q *Queries) GetUserRecentReviews(ctx context.Context, arg GetUserRecentRev
 			&i.Content,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.MatchSlug,
 		); err != nil {
 			return nil, err
 		}
