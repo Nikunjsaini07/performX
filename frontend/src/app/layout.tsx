@@ -4,6 +4,7 @@ import '../styles/tailwind.css';
 import { AuthProvider } from '@/lib/auth-context';
 import Navbar from '@/components/navbar';
 import Footer from '@/components/footer';
+import { Analytics } from '@vercel/analytics/react';
 import { SITE } from '@/lib/site';
 
 export const viewport: Viewport = {
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <div className="min-h-screen">{children}</div>
           <Footer />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
