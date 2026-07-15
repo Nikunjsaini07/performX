@@ -13,6 +13,7 @@ import (
 
 	"github.com/Nikunjsaini07/performx/backend/internal/api"
 	"github.com/Nikunjsaini07/performx/backend/internal/db"
+	"github.com/Nikunjsaini07/performx/backend/internal/middleware"
 	"github.com/Nikunjsaini07/performx/backend/internal/worker"
 )
 
@@ -114,7 +115,7 @@ func main() {
 	serverAddr := fmt.Sprintf(":%s", port)
 	server := &http.Server{
 		Addr:         serverAddr,
-		Handler:      api.EnableCORS(mux),
+		Handler:      middleware.EnableCORS(mux),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,

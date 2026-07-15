@@ -5,50 +5,52 @@ import (
 	"net/http"
 
 	"github.com/Nikunjsaini07/performx/backend/internal/db"
+	"github.com/Nikunjsaini07/performx/backend/internal/handler"
+	"github.com/Nikunjsaini07/performx/backend/internal/middleware"
 )
 
 // RegisterRoutes registers all public and protected routes to the main ServeMux router.
 func RegisterRoutes(mux *http.ServeMux, queries *db.Queries, jwtSecret []byte, adminPrefix string) {
 	// Initialize all sub-handlers
-	authHandler := &AuthHandler{
+	authHandler := &handler.AuthHandler{
 		Queries:   queries,
 		JWTSecret: jwtSecret,
 	}
-	meHandler := &MeHandler{
+	meHandler := &handler.MeHandler{
 		Queries: queries,
 	}
-	usersHandler := &UsersHandler{
+	usersHandler := &handler.UsersHandler{
 		Queries:   queries,
 		JWTSecret: jwtSecret,
 	}
-	playersHandler := &PlayersHandler{
+	playersHandler := &handler.PlayersHandler{
 		Queries: queries,
 	}
-	teamsHandler := &TeamsHandler{
+	teamsHandler := &handler.TeamsHandler{
 		Queries: queries,
 	}
-	metadataHandler := &MetadataHandler{
+	metadataHandler := &handler.MetadataHandler{
 		Queries: queries,
 	}
-	matchesHandler := &MatchesHandler{
+	matchesHandler := &handler.MatchesHandler{
 		Queries: queries,
 	}
-	performancesHandler := &PerformancesHandler{
+	performancesHandler := &handler.PerformancesHandler{
 		Queries: queries,
 	}
-	ratingsHandler := &RatingsHandler{
+	ratingsHandler := &handler.RatingsHandler{
 		Queries: queries,
 	}
-	reviewsHandler := &ReviewsHandler{
+	reviewsHandler := &handler.ReviewsHandler{
 		Queries: queries,
 	}
-	commentsHandler := &CommentsHandler{
+	commentsHandler := &handler.CommentsHandler{
 		Queries: queries,
 	}
-	likesHandler := &LikesHandler{
+	likesHandler := &handler.LikesHandler{
 		Queries: queries,
 	}
-	importHandler := &ImportHandler{
+	importHandler := &handler.ImportHandler{
 		Queries: queries,
 	}
 
@@ -139,7 +141,7 @@ func RegisterRoutes(mux *http.ServeMux, queries *db.Queries, jwtSecret []byte, a
 	// ----------------------------------------------------
 	// 8. Public Trending Endpoints
 	// ----------------------------------------------------
-	trendingHandler := &TrendingHandler{
+	trendingHandler := &handler.TrendingHandler{
 		Queries: queries,
 	}
 	mux.HandleFunc("GET /trending/performances", trendingHandler.GetTrendingPerformances)
@@ -157,13 +159,13 @@ func RegisterRoutes(mux *http.ServeMux, queries *db.Queries, jwtSecret []byte, a
 	// ----------------------------------------------------
 	// 10. Setup Middlewares for Protected Endpoints
 	// ----------------------------------------------------
-	authMiddleware := RequireAuth(jwtSecret)
+	authMiddleware := middleware.RequireAuth(jwtSecret)
 	adminMiddleware := func(next http.Handler) http.Handler {
-		return authMiddleware(RequireAdmin(queries)(next))
+		return authMiddleware(middleware.RequireAdmin(queries)(next))
 	}
 
 	// ----------------------------------------------------
-	// 11. Protected Auth & Me Endpoints (RequireAuth)
+	// 11. Protected Auth & Me Endpoints (middleware.RequireAuth)
 	// ----------------------------------------------------
 	mux.Handle("POST /auth/logout", authMiddleware(http.HandlerFunc(authHandler.Logout)))
 	mux.Handle("GET /me", authMiddleware(http.HandlerFunc(meHandler.GetProfile)))
@@ -223,7 +225,7 @@ func RegisterRoutes(mux *http.ServeMux, queries *db.Queries, jwtSecret []byte, a
 	mux.Handle("DELETE /performance-review-comments/{commentId}/like", authMiddleware(http.HandlerFunc(likesHandler.UnlikePerformanceComment)))
 
 	// ----------------------------------------------------
-	// 16. Admin-Only CRUD Endpoints (RequireAdmin)
+	// 16. Admin-Only CRUD Endpoints (middleware.RequireAdmin)
 	// ----------------------------------------------------
 	// Players
 	mux.Handle("POST /"+adminPrefix+"/players", adminMiddleware(http.HandlerFunc(playersHandler.CreatePlayer)))
