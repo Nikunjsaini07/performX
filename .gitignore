@@ -7,7 +7,7 @@ vendor/
 out/
 build/
 .swc/
-
+scratch
 # Go
 bin/
 obj/
@@ -27,14 +27,14 @@ imolement
 .env.development.local
 .env.test.local
 .env.production.local
-
+scratch
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 *.log
-
+worker 
 # OS & Editor
 .DS_Store
 .DS_Store?
