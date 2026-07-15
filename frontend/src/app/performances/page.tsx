@@ -2,8 +2,8 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { Users } from 'lucide-react';
 import { getPerformances, getOverviewStats } from '@/lib/data';
-import PerformanceCard from '@/components/PerformanceCard';
-import Pagination from '@/components/Pagination';
+import PerformanceCard from '@/components/features/PerformanceCard';
+import Pagination from '@/components/core/Pagination';
 
 export const revalidate = 60;
 

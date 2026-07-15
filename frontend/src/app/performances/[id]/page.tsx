@@ -6,13 +6,13 @@ import { Clock, Shirt, ArrowUpRight } from 'lucide-react';
 import { getPerformance, getPerformanceStats, getPerformanceReviews, getMatch } from '@/lib/data';
 import { toNumber } from '@/lib/format';
 import type { StatRow } from '@/lib/api';
-import DetailBackdrop from '@/components/DetailBackdrop';
-import BackButton from '@/components/BackButton';
+import DetailBackdrop from '@/components/layout/DetailBackdrop';
+import BackButton from '@/components/layout/BackButton';
 import TeamCrest from '@/components/TeamCrest';
-import RatingBadge from '@/components/RatingBadge';
-import RatingWidget from '@/components/RatingWidget';
-import ReviewsSection from '@/components/ReviewsSection';
-import PlayerTile from '@/components/PlayerTile';
+import RatingBadge from '@/components/features/RatingBadge';
+import RatingWidget from '@/components/features/RatingWidget';
+import ReviewsSection from '@/components/features/ReviewsSection';
+import PlayerTile from '@/components/features/PlayerTile';
 
 export const revalidate = 60;
 

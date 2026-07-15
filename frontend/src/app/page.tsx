@@ -11,10 +11,10 @@ import {
   getOverviewStats,
 } from '@/lib/data';
 import { SITE, BACKGROUNDS } from '@/lib/site';
-import MatchCard from '@/components/MatchCard';
-import PerformanceCard from '@/components/PerformanceCard';
-import ReviewCard from '@/components/ReviewCard';
-import SectionRail from '@/components/SectionRail';
+import MatchCard from '@/components/features/MatchCard';
+import PerformanceCard from '@/components/features/PerformanceCard';
+import ReviewCard from '@/components/features/ReviewCard';
+import SectionRail from '@/components/layout/SectionRail';
 import TeamCrest from '@/components/TeamCrest';
 import { initials } from '@/lib/format';
 

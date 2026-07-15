@@ -1,9 +1,9 @@
 import React from 'react';
 import type { Metadata, Viewport } from 'next';
 import '../styles/tailwind.css';
-import { AuthProvider } from '@/lib/auth-context';
-import Navbar from '@/components/navbar';
-import Footer from '@/components/footer';
+import { AuthProvider } from '@/contexts/AuthContext';
+import Navbar from '@/components/layout/navbar';
+import Footer from '@/components/layout/footer';
 import { Analytics } from '@vercel/analytics/react';
 import { SITE } from '@/lib/site';
 

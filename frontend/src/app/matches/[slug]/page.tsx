@@ -6,13 +6,13 @@ import { CalendarDays, MapPin } from 'lucide-react';
 import { getMatch, getMatchPerformances, getMatchReviews } from '@/lib/data';
 import { formatDateTime, penaltyValue, toNumber } from '@/lib/format';
 import type { Performance } from '@/lib/api';
-import DetailBackdrop from '@/components/DetailBackdrop';
-import BackButton from '@/components/BackButton';
+import DetailBackdrop from '@/components/layout/DetailBackdrop';
+import BackButton from '@/components/layout/BackButton';
 import TeamCrest from '@/components/TeamCrest';
-import RatingBadge from '@/components/RatingBadge';
-import RatingWidget from '@/components/RatingWidget';
-import ReviewsSection from '@/components/ReviewsSection';
-import PlayerTile from '@/components/PlayerTile';
+import RatingBadge from '@/components/features/RatingBadge';
+import RatingWidget from '@/components/features/RatingWidget';
+import ReviewsSection from '@/components/features/ReviewsSection';
+import PlayerTile from '@/components/features/PlayerTile';
 
 export const revalidate = 60;
 

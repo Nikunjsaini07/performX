@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/lib/auth-context';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { updateProfile, updateUsername, updateAvatar, uploadToCloudinary } from '@/lib/api';
 import { Camera, Loader2, User, AtSign, FileText, Check, X } from 'lucide-react';

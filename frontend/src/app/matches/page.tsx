@@ -2,8 +2,8 @@ import React from 'react';
 import type { Metadata } from 'next';
 import { CalendarSearch } from 'lucide-react';
 import { getMatches, getOverviewStats } from '@/lib/data';
-import MatchCard from '@/components/MatchCard';
-import Pagination from '@/components/Pagination';
+import MatchCard from '@/components/features/MatchCard';
+import Pagination from '@/components/core/Pagination';
 
 export const revalidate = 60;
 

@@ -6,8 +6,8 @@ import { Star, PenLine, Heart, CalendarDays } from 'lucide-react';
 import { getUserProfile, getUserReviews, getUserRatings } from '@/lib/data';
 import { initials, formatDate, timeAgo, toNumber } from '@/lib/format';
 import type { UserReviewRow, UserRatingRow } from '@/lib/api';
-import RatingBadge from '@/components/RatingBadge';
-import BackButton from '@/components/BackButton';
+import RatingBadge from '@/components/features/RatingBadge';
+import BackButton from '@/components/layout/BackButton';
 
 export const revalidate = 30;
 

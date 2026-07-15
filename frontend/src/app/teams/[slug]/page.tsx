@@ -4,9 +4,9 @@ import type { Metadata } from 'next';
 import { getTeams, getTeamMatches, getTeamPerformances } from '@/lib/data';
 import type { Match, Performance } from '@/lib/api';
 import TeamCrest from '@/components/TeamCrest';
-import BackButton from '@/components/BackButton';
-import MatchCard from '@/components/MatchCard';
-import PerformanceCard from '@/components/PerformanceCard';
+import BackButton from '@/components/layout/BackButton';
+import MatchCard from '@/components/features/MatchCard';
+import PerformanceCard from '@/components/features/PerformanceCard';
 
 export const revalidate = 60;
 
