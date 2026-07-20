@@ -17,11 +17,9 @@ import (
 	
 )
 
-func loadEnv() (string, string, string, string) {
-	var dbURL, jwtSecret, port, adminPrefix string
+func loadEnv() (string, string, string) {
+	var dbURL, jwtSecret, port string
 	port = "8080" // default
-	jwtSecret = "performx-default-super-secret-key-change-in-prod"
-	adminPrefix = "admin-gate-performx"
 
 	content, err := os.ReadFile(".env")
 	if err == nil {
@@ -40,41 +38,26 @@ func loadEnv() (string, string, string, string) {
 			
 			
 			os.Setenv(key, val)
-			
-			switch key {
-			case "DATABASE_URL":
-				dbURL = val
-			case "JWT_SECRET":
-				jwtSecret = val
-			case "PORT":
-				port = val
-			case "ADMIN_ROUTE_PREFIX":
-				adminPrefix = val
-			}
 		}
 	}
 
-
-	if dbURL == "" {
-		dbURL = os.Getenv("DATABASE_URL")
-	}
-	if os.Getenv("JWT_SECRET") != "" {
-		jwtSecret = os.Getenv("JWT_SECRET")
-	}
+	dbURL = os.Getenv("DATABASE_URL")
+	jwtSecret = os.Getenv("JWT_SECRET")
+	
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
-	if os.Getenv("ADMIN_ROUTE_PREFIX") != "" {
-		adminPrefix = os.Getenv("ADMIN_ROUTE_PREFIX")
-	}
 
-	return dbURL, jwtSecret, port, adminPrefix
+	return dbURL, jwtSecret, port
 }
 
 func main() {
-	dbURL, jwtSecret, port, adminPrefix := loadEnv()
+	dbURL, jwtSecret, port := loadEnv()
 	if dbURL == "" {
 		log.Fatal("DATABASE_URL is required in .env or OS environment variables")
+	}
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET is required in .env or OS environment variables")
 	}
 
 	ctx := context.Background()
@@ -106,7 +89,7 @@ func main() {
 
 	
 	mux := http.NewServeMux()
-	api.RegisterRoutes(mux, queries, []byte(jwtSecret), adminPrefix)
+	api.RegisterRoutes(mux, queries, []byte(jwtSecret))
 
 	
 
