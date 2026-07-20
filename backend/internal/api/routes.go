@@ -10,7 +10,7 @@ import (
 )
 
 // RegisterRoutes registers all public and protected routes to the main ServeMux router.
-func RegisterRoutes(mux *http.ServeMux, queries *db.Queries, jwtSecret []byte, adminPrefix string) {
+func RegisterRoutes(mux *http.ServeMux, queries *db.Queries, jwtSecret []byte) {
 	// Initialize all sub-handlers
 	authHandler := &handler.AuthHandler{
 		Queries:   queries,
@@ -48,9 +48,6 @@ func RegisterRoutes(mux *http.ServeMux, queries *db.Queries, jwtSecret []byte, a
 		Queries: queries,
 	}
 	likesHandler := &handler.LikesHandler{
-		Queries: queries,
-	}
-	importHandler := &handler.ImportHandler{
 		Queries: queries,
 	}
 
@@ -160,9 +157,6 @@ func RegisterRoutes(mux *http.ServeMux, queries *db.Queries, jwtSecret []byte, a
 	// 10. Setup Middlewares for Protected Endpoints
 	// ----------------------------------------------------
 	authMiddleware := middleware.RequireAuth(jwtSecret)
-	adminMiddleware := func(next http.Handler) http.Handler {
-		return authMiddleware(middleware.RequireAdmin(queries)(next))
-	}
 
 	// ----------------------------------------------------
 	// 11. Protected Auth & Me Endpoints (middleware.RequireAuth)
@@ -223,32 +217,6 @@ func RegisterRoutes(mux *http.ServeMux, queries *db.Queries, jwtSecret []byte, a
 
 	mux.Handle("POST /performance-review-comments/{commentId}/like", authMiddleware(http.HandlerFunc(likesHandler.LikePerformanceComment)))
 	mux.Handle("DELETE /performance-review-comments/{commentId}/like", authMiddleware(http.HandlerFunc(likesHandler.UnlikePerformanceComment)))
-
-	// ----------------------------------------------------
-	// 16. Admin-Only CRUD Endpoints (middleware.RequireAdmin)
-	// ----------------------------------------------------
-	// Players
-	mux.Handle("POST /"+adminPrefix+"/players", adminMiddleware(http.HandlerFunc(playersHandler.CreatePlayer)))
-	mux.Handle("PATCH /"+adminPrefix+"/players/{slug}", adminMiddleware(http.HandlerFunc(playersHandler.UpdatePlayer)))
-	mux.Handle("DELETE /"+adminPrefix+"/players/{slug}", adminMiddleware(http.HandlerFunc(playersHandler.DeletePlayer)))
-	// Teams
-	mux.Handle("POST /"+adminPrefix+"/teams", adminMiddleware(http.HandlerFunc(teamsHandler.CreateTeam)))
-	mux.Handle("PATCH /"+adminPrefix+"/teams/{slug}", adminMiddleware(http.HandlerFunc(teamsHandler.UpdateTeam)))
-	mux.Handle("DELETE /"+adminPrefix+"/teams/{slug}", adminMiddleware(http.HandlerFunc(teamsHandler.DeleteTeam)))
-	// Countries
-	mux.Handle("POST /"+adminPrefix+"/countries", adminMiddleware(http.HandlerFunc(metadataHandler.CreateCountry)))
-	mux.Handle("PATCH /"+adminPrefix+"/countries/{code}", adminMiddleware(http.HandlerFunc(metadataHandler.UpdateCountry)))
-	mux.Handle("DELETE /"+adminPrefix+"/countries/{code}", adminMiddleware(http.HandlerFunc(metadataHandler.DeleteCountry)))
-	// Import
-	mux.Handle("POST /"+adminPrefix+"/import-match", http.HandlerFunc(importHandler.ImportMatch))
-	// Matches
-	mux.Handle("POST /"+adminPrefix+"/matches", adminMiddleware(http.HandlerFunc(matchesHandler.CreateMatch)))
-	mux.Handle("PATCH /"+adminPrefix+"/matches/{slug}", http.HandlerFunc(matchesHandler.UpdateMatch))
-	mux.Handle("DELETE /"+adminPrefix+"/matches/{slug}", adminMiddleware(http.HandlerFunc(matchesHandler.DeleteMatch)))
-	// Performances
-	mux.Handle("POST /"+adminPrefix+"/performances", adminMiddleware(http.HandlerFunc(performancesHandler.CreatePerformance)))
-	mux.Handle("PATCH /"+adminPrefix+"/performances/{id}", http.HandlerFunc(performancesHandler.UpdatePerformance))
-	mux.Handle("DELETE /"+adminPrefix+"/performances/{id}", adminMiddleware(http.HandlerFunc(performancesHandler.DeletePerformance)))
 
 	// Overview stats (public) — powers the homepage stat strip with real totals
 	mux.HandleFunc("GET /stats/overview", func(w http.ResponseWriter, r *http.Request) {
