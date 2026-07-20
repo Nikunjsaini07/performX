@@ -14,10 +14,9 @@ import (
 	"github.com/Nikunjsaini07/performx/backend/internal/api"
 	"github.com/Nikunjsaini07/performx/backend/internal/db"
 	"github.com/Nikunjsaini07/performx/backend/internal/middleware"
-	"github.com/Nikunjsaini07/performx/backend/internal/worker"
+	
 )
 
-// Helper to parse environment variables from .env file
 func loadEnv() (string, string, string, string) {
 	var dbURL, jwtSecret, port, adminPrefix string
 	port = "8080" // default
@@ -39,7 +38,7 @@ func loadEnv() (string, string, string, string) {
 			key := strings.TrimSpace(parts[0])
 			val := strings.Trim(strings.TrimSpace(parts[1]), `'"`)
 			
-			// Set as environment variable so os.Getenv() works throughout the app
+			
 			os.Setenv(key, val)
 			
 			switch key {
@@ -55,7 +54,7 @@ func loadEnv() (string, string, string, string) {
 		}
 	}
 
-	// Fallback to OS environment
+
 	if dbURL == "" {
 		dbURL = os.Getenv("DATABASE_URL")
 	}
@@ -80,13 +79,13 @@ func main() {
 
 	ctx := context.Background()
 	
-	// Create database connection pool
+	
 	config, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
 		log.Fatalf("Unable to parse database URL: %v", err)
 	}
 
-	// Tweak pool settings for performance
+	
 	config.MaxConns = 10
 	config.MinConns = 2
 	config.MaxConnIdleTime = 15 * time.Minute
@@ -97,7 +96,7 @@ func main() {
 	}
 	defer pool.Close()
 
-	// Verify database connection is healthy
+	
 	if err := pool.Ping(ctx); err != nil {
 		log.Fatalf("Database connection ping failed: %v", err)
 	}
@@ -105,12 +104,11 @@ func main() {
 
 	queries := db.New(pool)
 
-	// Setup routes using Go 1.22+ enhanced ServeMux router
+	
 	mux := http.NewServeMux()
 	api.RegisterRoutes(mux, queries, []byte(jwtSecret), adminPrefix)
 
-	// Start the background worker for trending scores
-	worker.StartTrendingWorker(pool, queries, 30*time.Minute)
+	
 
 	serverAddr := fmt.Sprintf(":%s", port)
 	server := &http.Server{
