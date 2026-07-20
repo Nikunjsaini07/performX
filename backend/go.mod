@@ -11,10 +11,10 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute/metadata v0.3.0
-	github.com/jackc/pgpassfile v1.0.0 
-	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 
-	github.com/jackc/puddle/v2 v2.2.2
-	golang.org/x/sync v0.21.0 
-	golang.org/x/text v0.38.0 
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
+	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/text v0.38.0 // indirect
 )
